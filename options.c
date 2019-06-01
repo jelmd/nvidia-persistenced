@@ -32,6 +32,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <syslog.h>
 
 #include "common-utils.h"
 #include "msg.h"
@@ -102,6 +103,61 @@ static void setup_option_defaults(NvPdOptions *options)
     options->verbose = 0;
     options->uid = getuid();
     options->gid = getgid();
+    options->facility = LOG_DAEMON;
+}
+
+typedef struct _fentry {
+	char *name;
+	int val;
+} FENTRY;
+
+FENTRY facilitynames[] = {
+	/* Posix */
+	{ "kern", LOG_KERN },
+	{ "user", LOG_USER },
+	{ "mail", LOG_MAIL },
+	{ "news", LOG_NEWS },
+	{ "uucp", LOG_UUCP },
+	{ "daemon", LOG_DAEMON },
+	{ "auth", LOG_AUTH },
+	{ "cron", LOG_CRON },
+	{ "lpr", LOG_LPR },
+	{ "local0", LOG_LOCAL0 },
+	{ "local1", LOG_LOCAL1 },
+	{ "local2", LOG_LOCAL2 },
+	{ "local3", LOG_LOCAL3 },
+	{ "local4", LOG_LOCAL4 },
+	{ "local5", LOG_LOCAL5 },
+	{ "local6", LOG_LOCAL6 },
+	{ "local7", LOG_LOCAL7 },
+	/* OS specific */
+#ifdef LOG_AUTHPRIV
+	{ "authpriv", LOG_AUTHPRIV },
+#endif
+#ifdef LOG_FTP
+	{ "ftp", LOG_FTP },
+#endif
+#ifdef LOG_SYSLOG
+	{ "syslog", LOG_SYSLOG },
+#endif
+#ifdef LOG_AUDIT
+	{ "audit", LOG_AUDIT },
+#endif
+	{ NULL, -1 }
+};
+
+static int parse_log_facility(char *name, int defaultVal) {
+	register const FENTRY *e = facilitynames;
+
+	if (name != NULL) {
+		for (; e->name; e++) {
+			if (!strcasecmp(name, e->name))
+				return (e->val);
+		}
+	}
+	fprintf(stderr, "Log facility '%s' not supported on this platform. "
+			"Using the default.", name ? "" : name);
+	return defaultVal;
 }
 
 /*
@@ -165,6 +221,10 @@ void parse_options(int argc, char *argv[], NvPdOptions *options)
                 /* overrides the gid from the -u option, if already given */
                 options->gid = gr_entry->gr_gid;
                 group_specified = 1;
+                break;
+            case 'l':
+                options->facility =
+                    parse_log_facility(strval, options->facility);
                 break;
             case PERSISTENCE_MODE_OPTION:
                 if (boolval) {

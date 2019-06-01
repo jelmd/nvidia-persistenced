@@ -78,7 +78,7 @@ static struct {
 /*
  * Local Functions
  */
-static int daemonize(uid_t uid, gid_t gid);
+static int daemonize(uid_t uid, gid_t gid, int facility);
 static int load_nvidia_cfg_sym(void **sym_ptr, const char *sym_name);
 static NvPdDevice *get_device(int domain, int bus, int slot);
 static NvPdStatus setup_nvidia_cfg_api(const char *nvidia_cfg_path);
@@ -687,7 +687,7 @@ static void signal_handler(int signal)
  * daemonize() - This function converts the current process into a daemon
  * process.
  */
-static int daemonize(uid_t uid, gid_t gid)
+static int daemonize(uid_t uid, gid_t gid, int facility)
 {
     char pid_str[10];
     struct sigaction signal_action;
@@ -754,7 +754,7 @@ static int daemonize(uid_t uid, gid_t gid)
     setlogmask(log_mask);
 
     /* Setup syslog connection */
-    openlog(NVPD_DAEMON_NAME, 0, LOG_DAEMON);
+    openlog(NVPD_DAEMON_NAME, 0, facility);
     SYSLOG_VERBOSE(LOG_INFO, "Verbose syslog connection opened");
 
     sigaction(SIGINT,  &signal_action, NULL);
@@ -895,7 +895,7 @@ int main(int argc, char* argv[])
     parse_options(argc, argv, &options);
     verbose = options.verbose;
 
-    pipe_write_fd = daemonize(options.uid, options.gid);
+    pipe_write_fd = daemonize(options.uid, options.gid, options.facility);
 
     /* Only the daemon process reaches this point */
     status = setup_nvidia_cfg_api(options.nvidia_cfg_path);

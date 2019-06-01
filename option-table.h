@@ -83,6 +83,13 @@ static const NVGetoptOption __options[] = {
       "If the --user option is also not given, nvidia-persistenced will not "
       "attempt to change the process group ID." },
 
+	{ "log-facility",
+      'l',
+      NVGETOPT_STRING_ARGUMENT | NVGETOPT_HELP_ALWAYS,
+      "LOG_FACILITY",
+      "Log to the given &LOG_FACILITY& instead of to 'daemon', if supported "
+      "by the running platform - see logger(1)." },
+
     { "persistence-mode",
       PERSISTENCE_MODE_OPTION,
       NVGETOPT_IS_BOOLEAN | NVGETOPT_HELP_ALWAYS,
