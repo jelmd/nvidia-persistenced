@@ -25,6 +25,7 @@
  * option-table.h
  */
 
+#include "nvpd_defs.h"
 #include "nvgetopt.h"
 
 enum {
@@ -82,6 +83,16 @@ static const NVGetoptOption __options[] = {
       "primary group ID of the user specified by the --user option argument. "
       "If the --user option is also not given, nvidia-persistenced will not "
       "attempt to change the process group ID." },
+
+    { "dir",
+      'd',
+      NVGETOPT_IS_BOOLEAN | NVGETOPT_HELP_ALWAYS,
+      NULL,
+      "Handle the runtime directory (" NVPD_VAR_RUNTIME_DATA_PATH
+      ") as needed, i.e. on startup create it if missing, and remove it on "
+      "shutdown. Because the daemon may not have the priviliges to do that, "
+      "by default it is expected, that the utility starting the daemon "
+      "takes care of it. " },
 
 	{ "log-facility",
       'l',

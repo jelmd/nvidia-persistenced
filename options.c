@@ -104,6 +104,7 @@ static void setup_option_defaults(NvPdOptions *options)
     options->uid = getuid();
     options->gid = getgid();
     options->facility = LOG_DAEMON;
+    options->dirs = 0;
 }
 
 typedef struct _fentry {
@@ -221,6 +222,9 @@ void parse_options(int argc, char *argv[], NvPdOptions *options)
                 /* overrides the gid from the -u option, if already given */
                 options->gid = gr_entry->gr_gid;
                 group_specified = 1;
+                break;
+            case 'd':
+                options->dirs = 1;
                 break;
             case 'l':
                 options->facility =

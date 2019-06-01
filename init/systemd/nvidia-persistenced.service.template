@@ -30,8 +30,13 @@ Wants=syslog.target
 
 [Service]
 Type=forking
-ExecStart=/usr/bin/nvidia-persistenced --user __USER__
-ExecStopPost=/bin/rm -rf /var/run/nvidia-persistenced
+# unfortunately hardcoded
+PIDFile=/run/nvidia-persistenced/nvidia-persistenced.pid
+RuntimeDirectory=nvidia-persistenced
+# there is no need to run it by a pre-configured user/gid
+DynamicUser=true
+ExecStart=/usr/bin/nvidia-persistenced --verbose
+TimeoutSec=60
 
 [Install]
 WantedBy=multi-user.target

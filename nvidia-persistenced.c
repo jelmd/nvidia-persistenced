@@ -78,7 +78,7 @@ static struct {
 /*
  * Local Functions
  */
-static int daemonize(uid_t uid, gid_t gid, int facility);
+static int daemonize(uid_t uid, gid_t gid, int facility, int createDir);
 static int load_nvidia_cfg_sym(void **sym_ptr, const char *sym_name);
 static NvPdDevice *get_device(int domain, int bus, int slot);
 static NvPdStatus setup_nvidia_cfg_api(const char *nvidia_cfg_path);
@@ -687,7 +687,7 @@ static void signal_handler(int signal)
  * daemonize() - This function converts the current process into a daemon
  * process.
  */
-static int daemonize(uid_t uid, gid_t gid, int facility)
+static int daemonize(uid_t uid, gid_t gid, int facility, int createDir)
 {
     char pid_str[10];
     struct sigaction signal_action;
@@ -787,25 +787,27 @@ static int daemonize(uid_t uid, gid_t gid, int facility)
                strerror(errno));
     }
 
-    /*
-     * Try to create the supplied data path - if it fails, we'll catch the
-     * error with the access() call below.
-     */
-    if (mkdir(NVPD_VAR_RUNTIME_DATA_PATH, 0755) < 0) {
-        if (errno != EEXIST) {
-            syslog(LOG_WARNING, "Failed to create directory %s: %s",
-                   NVPD_VAR_RUNTIME_DATA_PATH, strerror(errno));
-        }
-
-        SYSLOG_VERBOSE(LOG_INFO, "Directory %s will not be removed on exit",
-                       NVPD_VAR_RUNTIME_DATA_PATH);
-    } else {
-        /*
-         * Only attempt to remove the directory on shutdown if the daemon
-         * created it.
+    if (createDir != 0) {
+        /* Non-sense, but who cares ...
+         * Try to create the runtime path - if it fails, we'll catch the
+         * error with the access() call below.
          */
-        remove_dir = 1;
-    }
+        if (mkdir(NVPD_VAR_RUNTIME_DATA_PATH, 0755) < 0) {
+            if (errno != EEXIST) {
+                syslog(LOG_WARNING, "Failed to create directory %s: %s",
+                       NVPD_VAR_RUNTIME_DATA_PATH, strerror(errno));
+            }
+
+            SYSLOG_VERBOSE(LOG_INFO, "Directory %s will not be removed on exit",
+                       NVPD_VAR_RUNTIME_DATA_PATH);
+		} else {
+            /*
+             * Only attempt to remove the directory on shutdown if the daemon
+             * created it.
+             */
+            remove_dir = 1;
+        }
+	}
 
     /*
      * If the user ID or group ID are different than the current, change the
@@ -895,7 +897,8 @@ int main(int argc, char* argv[])
     parse_options(argc, argv, &options);
     verbose = options.verbose;
 
-    pipe_write_fd = daemonize(options.uid, options.gid, options.facility);
+    pipe_write_fd =
+		daemonize(options.uid, options.gid, options.facility, options.dirs);
 
     /* Only the daemon process reaches this point */
     status = setup_nvidia_cfg_api(options.nvidia_cfg_path);

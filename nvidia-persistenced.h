@@ -39,6 +39,7 @@ typedef struct {
     int verbose;
     uid_t uid;
     gid_t gid;
+    int dirs;
     int facility;
 } NvPdOptions;
 

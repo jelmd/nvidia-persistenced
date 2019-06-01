@@ -61,6 +61,10 @@ case "${1}" in
   start)
       echo "Starting NVIDIA Persistence Daemon"
 
+      if [ ! -d ${NVPD_RUNTIME} ]; then
+          mkdir -p ${NVPD_RUNTIME} || exit 99
+          chown ${NVPD_USER} ${NVPD_RUNTIME}
+      fi
       # Execute the daemon as the intended user
       ${NVPD_BIN} --user ${NVPD_USER}
       ;;

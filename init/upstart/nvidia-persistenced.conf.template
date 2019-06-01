@@ -35,6 +35,11 @@ env NVPD_USER=__USER__
 
 expect fork
 
+pre-start script
+    [ -d $NVPD_RUNTIME ] || mkdir -p $NVPD_RUNTIME
+    chown $NVPD_USER $NVPD_RUNTIME
+end script
+
 exec $NVPD_BIN --user $NVPD_USER
 
 post-stop script
